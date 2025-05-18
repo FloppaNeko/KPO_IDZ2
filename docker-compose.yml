@@ -1,0 +1,41 @@
+version: '3.4'
+
+services:
+  apigateway:
+    build:
+        context: .
+        dockerfile: ApiGateway/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+        - "5000:8080"
+    depends_on:
+        - filestoring
+
+  filedb:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: filedb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  filestoring:
+    build:
+      context: .
+      dockerfile: FileStoringService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=filedb;Port=5432;Database=filedb;Username=postgres;Password=admin
+    ports:
+      - "5001:80"
+    depends_on:
+      - filedb
+    volumes:
+      - ./FileStoringService/UploadedFiles:/app/UploadedFiles
+
+volumes:
+  pgdata:

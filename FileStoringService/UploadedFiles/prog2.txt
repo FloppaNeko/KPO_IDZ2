@@ -1,0 +1,5 @@
+record R -f a:bit -f b:bit -f c:uint4
+set S -r R
+yield S -f a
+yield S -f b
+add S -t c -a a -b b
