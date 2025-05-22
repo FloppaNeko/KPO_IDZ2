@@ -1,4 +1,0 @@
-record R -f f1:bit -f f2:bit
-set S -r R
-H S -f f1
-CNOT S -c f1 -f f2

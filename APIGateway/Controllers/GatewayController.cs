@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Net.Http;
 
 namespace APIGateway.Controllers
 {
@@ -52,6 +53,40 @@ namespace APIGateway.Controllers
             var fileName = response.Content.Headers.ContentDisposition?.FileName?.Trim('"') ?? $"file_{id}";
 
             return File(stream, contentType, fileName);
+        }
+
+        [HttpGet("wordcloud/{id}")]
+        public async Task<IActionResult> DownloadWordCloud(int id)
+        {
+            var client = _httpClientFactory.CreateClient();
+
+            var response = await client.GetAsync($"http://file-analysis/api/analyze/wordcloud/{id}");
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
+            }
+
+            var stream = await response.Content.ReadAsStreamAsync();
+            var contentType = response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream";
+            var fileName = response.Content.Headers.ContentDisposition?.FileName?.Trim('"') ?? $"file_{id}";
+
+            return File(stream, contentType, fileName);
+        }
+
+        [HttpGet("analysis/{id}")]
+        public async Task<IActionResult> AnalyzeFile(int id)
+        {
+            var client = _httpClientFactory.CreateClient();
+
+            var response = await client.GetAsync($"http://file-analysis/api/analyze/{id}");
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                return StatusCode((int)response.StatusCode, error);
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            return Content(json, "application/json");
         }
     }
 }
